@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  RELEASED
+}
+
+model Product {
+  id           String @id @default(cuid())
+  name         String
+
+  inventories  Inventory[]
+  reservations Reservation[]
+}
+
+model Warehouse {
+  id           String @id @default(cuid())
+  name         String
+
+  inventories  Inventory[]
+  reservations Reservation[]
+}
+
+model Inventory {
+  id            String @id @default(cuid())
+
+  productId     String
+  warehouseId   String
+
+  totalUnits    Int
+  reservedUnits Int @default(0)
+
+  product       Product @relation(fields: [productId], references: [id])
+  warehouse     Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, warehouseId])
+}
+
+model Reservation {
+  id           String @id @default(cuid())
+
+  productId    String
+  warehouseId  String
+
+  quantity     Int
+
+  status       ReservationStatus
+
+  expiresAt    DateTime
+
+  createdAt    DateTime @default(now())
+
+  product      Product @relation(fields: [productId], references: [id])
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
+}
